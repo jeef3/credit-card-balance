@@ -6,6 +6,8 @@ import minimist from 'minimist';
 import chalk from 'chalk';
 import Table from 'cli-table';
 
+import reconcile from 'reconcile';
+
 const argv = minimist(process.argv.slice(2));
 const csvFileName = argv._[0];
 
@@ -18,34 +20,26 @@ const transactions = fs
     return {
       date: parts[0],
       amount: parseInt(parts[1] * 100, 10),
-      particulars: parts[2],
-      code: parts[3],
-      reference: parts[4],
-      type: parts[5]
+      payee: parts[2],
+      particulars: parts[3],
+      code: parts[4],
+      reference: parts[5],
+      type: parts[6]
     };
   });
 
-const credits = transactions.filter(t => t.amount > 0);
-const debits = transactions.filter(t => t.amount < 0);
-
-const matchedDebits = debits
-  .map(debit => {
-    const matches = credits
-      .filter(credit => debit.amount + credit.amount === 0);
-
-    return { debit, matches };
-  });
+const reconciled = reconcile(transactions);
 
 const display = new Table({
   head: [
     'Amount',
     'Date',
-    'Particulars',
+    'Payee',
     'Paid'
   ]
 });
 
-matchedDebits.forEach(match => {
+reconciled.forEach(match => {
   const { debit, matches } = match;
 
   let paid;
@@ -60,7 +54,7 @@ matchedDebits.forEach(match => {
   display.push([
     '$ ' + Math.abs(debit.amount / 100).toFixed(2),
     debit.date,
-    debit.particulars,
+    debit.payee,
     paid
   ]);
 })
