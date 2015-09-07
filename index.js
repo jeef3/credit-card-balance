@@ -6,11 +6,12 @@ import minimist from 'minimist';
 import chalk from 'chalk';
 import Table from 'cli-table';
 
-import reconcile from 'reconcile';
+import matchDebits from './match-debits';
 
 const argv = minimist(process.argv.slice(2));
 const csvFileName = argv._[0];
 
+// Read raw transactions
 const transactions = fs
   .readFileSync(csvFileName)
   .toString()
@@ -28,19 +29,24 @@ const transactions = fs
     };
   });
 
-const reconciled = reconcile(transactions);
+
+// Prepare matches
+const matchedDebits = matchDebits(transactions);
 
 const display = new Table({
   head: [
     'Amount',
     'Date',
     'Payee',
-    'Paid'
+    'Paid',
+    'Amount'
   ]
 });
 
-reconciled.forEach(match => {
+matchedDebits.forEach(match => {
   const { debit, matches } = match;
+
+  console.log(match);
 
   let paid;
   if (matches.length === 0) {
@@ -51,11 +57,22 @@ reconciled.forEach(match => {
     paid = chalk.yellow.bold('?');
   }
 
-  display.push([
-    '$ ' + Math.abs(debit.amount / 100).toFixed(2),
-    debit.date,
-    debit.payee,
-    paid
-  ]);
+  if (debit) {
+    display.push([
+      '$ ' + Math.abs(debit.amount / 100).toFixed(2),
+      debit.date,
+      debit.payee,
+      paid,
+      matches.length ? matches[0].amount : ''
+    ]);
+  } else {
+    display.push([
+      '',
+      '',
+      '',
+      chalk.red('✘'),
+      matches.length ? matches[0].amount : ''
+    ])
+  }
 })
 console.log(display.toString());

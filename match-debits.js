@@ -7,33 +7,34 @@ function getMatches(transaction, collection) {
 }
 
 function hasMatches(transaction, collection) {
-  return getMatches(transaction, collection).length >== 1;
+  return getMatches(transaction, collection).length >= 1;
 }
 
 function getMatchesDate(match) {
   return match.debit ?
     match.debit.date :
-    match.credits[0].date;
+    match.matches[0].date;
 }
 
-export default function reconcile(transactions) {
+export default function matchDebits(transactions) {
   const credits = transactions.filter(t => t.amount > 0);
   const debits = transactions.filter(t => t.amount < 0);
 
-  const unmatchedCredits = credits
+  const danglingCredits = credits
     .filter(credit => !hasMatches(credit, debits))
     .map(credit => ({
-        debit: null,
-        credits: [credit]
-      }));
+      debit: null,
+      matches: [credit]
+    }));
 
-  const processedDebits = debits
+  const matchedDebits = debits
     .map(debit => ({
       debit,
-      credits: getMatches(debit, credits)
-    });
+      matches: getMatches(debit, credits)
+    }));
 
-  return processedDebits
-    .concat(unmatchedCredits)
+  return []
+    .concat(matchedDebits)
+    .concat(danglingCredits)
     .sort((m1, m2) => getMatchesDate(m1) > getMatchesDate(m2));
 }
