@@ -31,16 +31,11 @@ const transactions = fs
     };
   });
 
-
-// Raw
-// const conflictsMatched = transactions
-//   .reduce(matchDebits, [])
-//   .reduce(findConflicts, []);
-
-const matchedDebits = matchDebits(transactions);
-
-// Auto-pass
-const conflictsMatched = findConflicts(matchedDebits);
+// Results pipeline
+const results = [
+    matchDebits,
+    findConflicts
+  ].reduce((result, fn) => fn(result), transactions);
 
 const display = new Table({
   head: [
@@ -53,7 +48,7 @@ const display = new Table({
   ]
 });
 
-conflictsMatched.forEach(match => {
+results.forEach(match => {
   const { debit, matches, conflict } = match;
 
   let paid;
