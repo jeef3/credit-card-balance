@@ -1,5 +1,5 @@
 function doesMatch(t1, t2) {
-  return Math.abs(t1) === Math.abs(t2);
+  return Math.abs(t1.amount) === Math.abs(t2.amount);
 }
 
 function getMatches(transaction, collection) {
