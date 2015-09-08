@@ -9,6 +9,7 @@ import moment from 'moment';
 
 import matchDebits from './match-debits';
 import findConflicts from './find-conflicts';
+import applyCredits from './apply-credits';
 
 const argv = minimist(process.argv.slice(2));
 const csvFileName = argv._[0];
@@ -34,7 +35,8 @@ const transactions = fs
 // Results pipeline
 const results = [
     matchDebits,
-    findConflicts
+    findConflicts,
+    applyCredits
   ].reduce((result, fn) => fn(result), transactions);
 
 const display = new Table({
@@ -49,15 +51,20 @@ const display = new Table({
 });
 
 results.forEach(match => {
-  const { debit, matches, conflict } = match;
+  const {
+    debit,
+    matches,
+    conflict,
+    credit
+  } = match;
 
   let paid;
-  if (matches.length === 0) {
-    paid = chalk.red('✘');
-  } else if (matches.length === 1) {
+  if (credit) {
     paid = chalk.green('✓');
-  } else {
+  } else if (matches.length) {
     paid = chalk.yellow.bold('?');
+  } else {
+    paid = chalk.red('✘');
   }
 
   if (debit) {
@@ -74,9 +81,9 @@ results.forEach(match => {
       '',
       '',
       '',
-      chalk.red('✘'),
-      matches.length ? `$ ${matches[0].amount}` : '',
-      conflict || ''
+      paid,
+      `$ ${credit.amount}`,
+      ''
     ])
   }
 })
