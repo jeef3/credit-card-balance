@@ -11,20 +11,24 @@ export default function findConflicts(matched) {
   const conflictsMatched = matched.slice();
 
   conflictsMatched.forEach(m1 => {
-    if (m1.conflict) { return; }
+    // If there are no matches anyway, then there's no conflicts.
+    if (m1.conflict || !m1.matches.length) { return; }
 
+    // FIXME: Consider debit === null && matches.length === 1
+    // Conflicts based on multiple debits of the same amount
     const conflicts = matched.filter(m2 => {
       return m1 !== m2 && m1.debit && m2.debit ?
         Math.abs(m1.debit.amount) === Math.abs(m2.debit.amount) :
         false;
     });
 
-    if (conflicts.length) {
-      let cid = conflictId();
+    if (!conflicts.length) { return; }
 
-      m1.conflict = cid;
-      conflicts.forEach(m2 => m2.conflict = cid);
-    }
+    const cid = conflictId();
+    m1.conflict = cid;
+
+    // While we've got them, give the conflicts the id.
+    conflicts.forEach(m2 => m2.conflict = cid);
   });
 
   return conflictsMatched;
