@@ -11,9 +11,8 @@ function hasMatches(transaction, collection) {
 }
 
 function getMatchesDate(match) {
-  return match.debit ?
-    match.debit.date :
-    match.matches[0].date;
+  const { debit, matches } = match;
+  return debit ? debit.date : matches[0].date;
 }
 
 export default function matchDebits(transactions) {
