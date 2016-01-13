@@ -4,7 +4,8 @@
   "description": "Balance the credit card",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "./index.js",
+    "test": "babel-node test | tap-difflet"
   },
   "author": "Jeff Knaggs",
   "license": "MIT",
@@ -14,5 +15,11 @@
     "lodash": "^3.10.1",
     "minimist": "^1.2.0",
     "moment": "^2.10.6"
+  },
+  "devDependencies": {
+    "faucet": "0.0.1",
+    "tap-diff": "^0.1.0",
+    "tap-difflet": "^0.4.0",
+    "tape": "^4.2.0"
   }
 }

@@ -1,3 +1,5 @@
+import DebitResult from './DebitResult';
+
 function doesMatch(t1, t2) {
   return Math.abs(t1.amount) === Math.abs(t2.amount);
 }
@@ -15,9 +17,10 @@ function getMatchesDate(match) {
   return debit ? debit.date : matches[0].date;
 }
 
-export default function matchDebits(transactions) {
-  const credits = transactions.filter(t => t.amount > 0);
-  const debits = transactions.filter(t => t.amount < 0);
+export default (result : DebitResult[]) : DebitResult[] => {
+
+  const credits = result.filter(r => r.credits.amount > 0);
+  const debits = result.filter(r => r.amount < 0);
 
   const danglingCredits = credits
     .filter(credit => !hasMatches(credit, debits))
@@ -35,5 +38,5 @@ export default function matchDebits(transactions) {
   return []
     .concat(matchedDebits)
     .concat(danglingCredits)
-    .sort((m1, m2) => getMatchesDate(m1) > getMatchesDate(m2));
+    .sort((m1, m2) => getMatchesDate(m1) - getMatchesDate(m2));
 }
