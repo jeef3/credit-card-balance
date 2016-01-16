@@ -19,7 +19,7 @@ const csvFileName = __dirname + '/../tranhist.csv';
 // Read raw transactions
 const transactions : Transaction[] = readFileSync(csvFileName)
   .toString()
-  .split('\n')
+  .split('\r')
   .map(row => row.split(','))
   .map(parts => ({
     date: moment(parts[0], 'DD/MM/YY').toDate(),
@@ -38,7 +38,7 @@ const pipeline: ((d:DebitResult[], t:Transaction[]) => DebitResult[])[] = [
   makeDebitResults,
   matchCreditsToDebits,
   findConflicts,
-  resolveCredits
+  // resolveCredits
 ];
 
 // Process pipeline
@@ -51,46 +51,48 @@ const display = new Table({
     'Date',
     'Payee',
     'Paid',
-    'Amount',
+    'Credits',
     'Conflict'
   ]
 });
 
-debitResults.forEach(debitResult => {
-  const {
-    debit,
-    credits,
-    conflict
-  } = debitResult;
+debitResults
+  .filter(r => r.debit.amount === '-18.60')
+  .forEach(debitResult => {
+    const {
+      debit,
+      credits,
+      conflict
+    } = debitResult;
 
-  let paid;
-  if (credits.length === 1) {
-    paid = chalk.green('✓');
-  } else if (credits.length) {
-    paid = chalk.yellow.bold('?');
-  } else {
-    paid = chalk.red('✘');
-  }
+    let paid;
+    if (credits.length === 1) {
+      paid = chalk.green('✓');
+    } else if (credits.length) {
+      paid = chalk.yellow.bold('?');
+    } else {
+      paid = chalk.red('✘');
+    }
 
-  if (debit) {
-    display.push([
-      `$ ${debit.amount}`,
-      moment(debit.date).format('DD-MM-YY'),
-      debit.payee,
-      paid,
-      credits.length ? `$ ${credits[0].amount}` : '',
-      (conflict || '').substring(0, 5)
-    ]);
-  } else {
-    display.push([
-      '',
-      '',
-      '',
-      paid,
-      `$ ${credits[0].amount}`,
-      ''
-    ])
-  }
-})
+    if (debit) {
+      display.push([
+        `$ ${debit.amount}`,
+        moment(debit.date).format('DD-MM-YY'),
+        debit.payee || '',
+        paid,
+        credits.length,
+        (conflict || '').substring(0, 5)
+      ]);
+    } else {
+      display.push([
+        '',
+        '',
+        '',
+        paid,
+        credits.length,
+        ''
+      ])
+    }
+  })
 
-console.log(display.toString());
+  console.log(display.toString());
