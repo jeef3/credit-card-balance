@@ -7,13 +7,14 @@ import * as chalk from 'chalk';
 import * as moment from 'moment';
 
 import Transaction from './Transaction';
+import TransactionType from './TransactionType';
 import DebitResult from './DebitResult';
 import makeDebitResults from './make-debit-results';
-import matchDebits from './match-debits';
+import matchCreditsToDebits from './match-credits-to-debits';
 import findConflicts from './find-conflicts';
-import applyCredits from './apply-credits';
+import resolveCredits from './resolve-credits';
 
-const csvFileName = 'transhist.csv';
+const csvFileName = __dirname + '/../tranhist.csv';
 
 // Read raw transactions
 const transactions : Transaction[] = readFileSync(csvFileName)
@@ -27,17 +28,22 @@ const transactions : Transaction[] = readFileSync(csvFileName)
     particulars: parts[3],
     code: parts[4],
     reference: parts[5],
-    type: parts[6]
+    type: parts[6] === 'PAY'
+      ? TransactionType.Credit
+      : TransactionType.Debit
   }));
 
-console.log('Counting transactions,', transactions.length);
-
 // Debit results pipeline
-const debitResults : DebitResult[] = [
-    matchDebits,
-    findConflicts,
-    applyCredits
-  ].reduce((result, fn) => fn(result), makeDebitResults(transactions));
+const pipeline: ((d:DebitResult[], t:Transaction[]) => DebitResult[])[] = [
+  makeDebitResults,
+  matchCreditsToDebits,
+  findConflicts,
+  resolveCredits
+];
+
+// Process pipeline
+const debitResults : DebitResult[] = pipeline
+  .reduce((r, fn) => fn(r, transactions), []);
 
 const display = new Table({
   head: [
@@ -50,12 +56,12 @@ const display = new Table({
   ]
 });
 
-debitResults.forEach(match => {
+debitResults.forEach(debitResult => {
   const {
     debit,
     credits,
     conflict
-  } = match;
+  } = debitResult;
 
   let paid;
   if (credits.length === 1) {

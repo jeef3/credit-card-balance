@@ -2,7 +2,7 @@ import Transaction from './Transaction';
 
 interface DebitResult {
   debit: Transaction,
-  credits: Array<Transaction>,
+  credits: Transaction[],
   conflict?: string
 }
 

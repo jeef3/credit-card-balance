@@ -1,11 +1,15 @@
+import TransactionType from './TransactionType';
+
 interface Transaction {
-  date: Date,
+  date?: Date,
   amount: string,
-  payee: string,
-  particulars: string,
-  code: string,
-  reference: string,
-  type: string
+  type: TransactionType
+
+  payee?: string,
+
+  particulars?: string,
+  code?: string,
+  reference?: string,
 }
 
 export default Transaction;

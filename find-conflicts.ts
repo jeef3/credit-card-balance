@@ -1,4 +1,8 @@
-function conflictId() {
+import Transaction from './Transaction';
+import DebitResult from './DebitResult';
+import doesMatch from './does-match';
+
+function nextGuid() {
   var pattern = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
   return pattern.replace(/[xy]/g, function (c) {
     var r = Math.random() * 16 | 0;
@@ -7,29 +11,23 @@ function conflictId() {
   });
 }
 
-export default function findConflicts(matched) {
-  const conflictsMatched = matched.slice();
+export default (
+  results : DebitResult[],
+  transactions : Transaction[]
+) : DebitResult[] => {
 
-  conflictsMatched.forEach(m1 => {
-    // If there are no matches anyway, then there's no conflicts.
-    if (m1.conflict || !m1.matches.length) { return; }
+  return results.map((result) => {
+    const conflicts = results.filter(r2 => doesMatch(result.debit, r2.debit));
 
-    // FIXME: Consider debit === null && matches.length === 1
-    // Conflicts based on multiple debits of the same amount
-    const conflicts = matched.filter(m2 => {
-      return m1 !== m2 && m1.debit && m2.debit ?
-        Math.abs(m1.debit.amount) === Math.abs(m2.debit.amount) :
-        false;
-    });
+    // No conflicts, skip it.
+    if (!conflicts.length) { return result; }
 
-    if (!conflicts.length) { return; }
+    // See if any of the existing conflicts already have a conflict id.
+    const existing = conflicts.find(c => !!c.conflict);
 
-    const cid = conflictId();
-    m1.conflict = cid;
+    // Use either the existing id, or create a new one
+    const cid = existing ? existing.conflict : nextGuid();
 
-    // While we've got them, give the conflicts the id.
-    conflicts.forEach(m2 => m2.conflict = cid);
+    return Object.assign({}, result, { conflict: cid });
   });
-
-  return conflictsMatched;
 }
