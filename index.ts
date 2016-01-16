@@ -21,6 +21,8 @@ const transactions : Transaction[] = readFileSync(csvFileName)
   .toString()
   .split('\r')
   .map(row => row.split(','))
+  // Remove rows where the amount is invalid
+  .filter(parts => !!parseInt(parts[1], 10))
   .map(parts => ({
     date: moment(parts[0], 'DD/MM/YY').toDate(),
     amount: parts[1],
@@ -57,7 +59,7 @@ const display = new Table({
 });
 
 debitResults
-  .filter(r => r.debit.amount === '-18.60')
+  .filter(r => r.debit.amount === '-45.00')
   .forEach(debitResult => {
     const {
       debit,

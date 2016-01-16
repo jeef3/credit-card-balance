@@ -16,17 +16,24 @@ export default (
   transactions : Transaction[]
 ) : DebitResult[] => {
 
+  const conflictsDict = {};
+
   return results.map((result) => {
-    const conflicts = results.filter(r2 => doesMatch(result.debit, r2.debit));
+    const conflicts = results.filter(r2 =>
+      r2 !== result &&
+      doesMatch(result.debit, r2.debit));
 
     // No conflicts, skip it.
     if (!conflicts.length) { return result; }
 
     // See if any of the existing conflicts already have a conflict id.
-    const existing = conflicts.find(c => !!c.conflict);
+    const existing = conflictsDict[result.debit.amount];
 
     // Use either the existing id, or create a new one
-    const cid = existing ? existing.conflict : nextGuid();
+    const cid = existing || nextGuid();
+
+    // Update the conflicts dictionary
+    conflictsDict[result.debit.amount] = cid;
 
     return Object.assign({}, result, { conflict: cid });
   });
