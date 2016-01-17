@@ -8,14 +8,8 @@ import makeDebitResults from '../make-debit-results';
 
 const setup = () => {
   const transactions = [
-    { 
-      amount: '10.00',
-      type: TransactionType.Credit
-    },
-    {
-      amount: '-10.00',
-      type: TransactionType.Debit
-    }
+    { amount: '10.00', type: TransactionType.Credit },
+    { amount: '-10.00', type: TransactionType.Debit }
   ];
 
   const results = makeDebitResults([], transactions);
