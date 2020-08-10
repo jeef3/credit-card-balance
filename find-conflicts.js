@@ -7,7 +7,7 @@ function conflictId() {
   });
 }
 
-export default function findConflicts(matched) {
+module.exports = function findConflicts(matched) {
   const conflictsMatched = matched.slice();
 
   conflictsMatched.forEach(m1 => {

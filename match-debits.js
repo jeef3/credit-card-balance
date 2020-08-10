@@ -15,7 +15,7 @@ function getMatchesDate(match) {
   return debit ? debit.date : matches[0].date;
 }
 
-export default function matchDebits(transactions) {
+module.exports = function matchDebits(transactions) {
   const credits = transactions.filter(t => t.amount > 0);
   const debits = transactions.filter(t => t.amount < 0);
 

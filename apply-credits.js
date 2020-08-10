@@ -1,4 +1,4 @@
-export default function applyCredits(conflictsMatched) {
+module.exports = function applyCredits(conflictsMatched) {
   const creditsApplied = conflictsMatched.slice();
 
   creditsApplied.forEach(c1 => {

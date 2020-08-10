@@ -1,15 +1,15 @@
-#!/usr/bin/env babel-node
+#!/usr/bin/env node
 
-import fs from 'fs';
+const fs = require('fs');
 
-import minimist from 'minimist';
-import chalk from 'chalk';
-import Table from 'cli-table';
-import moment from 'moment';
+const minimist = require('minimist');
+const chalk = require('chalk');
+const Table = require('cli-table');
+const moment = require('moment');
 
-import matchDebits from './match-debits';
-import findConflicts from './find-conflicts';
-import applyCredits from './apply-credits';
+const matchDebits = require('./match-debits');
+const findConflicts = require('./find-conflicts');
+const applyCredits = require('./apply-credits');
 
 const argv = minimist(process.argv.slice(2));
 const csvFileName = argv._[0];
@@ -50,7 +50,13 @@ const display = new Table({
   ]
 });
 
-results.forEach(match => {
+results
+  .filter(match => {
+    const { credit, matches } = match;
+
+    return !credit;
+  })
+  .forEach(match => {
   const {
     debit,
     matches,
